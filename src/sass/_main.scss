@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.App-header {
+}
+
+.container {
+  @include outer-container;
+}
+
+.Book {
+  .line {
+    margin-bottom: 0.5em;
+  }
+
+  .line_no {
+    display: inline-block;
+    width: 1em;
+    margin-right: 1em;
+  }
+
+  .word {
+    display: inline-block;
+    cursor: pointer;
+
+    &:hover {
+      font-weight: bold;
+    }
+  }
+}

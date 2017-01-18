@@ -7,8 +7,12 @@ body {
 .App-header {
 }
 
-.container {
+.-container {
   @include outer-container;
+}
+
+.-col-6 {
+    @include span-columns(6)
 }
 
 .Book {
@@ -30,4 +34,52 @@ body {
       font-weight: bold;
     }
   }
+}
+
+.DataForm {
+    width: 100%;
+    height: 100%;
+    
+    .overlay {
+        width: 100%;
+        height: 100%;
+    }
+
+    .body {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        outline: none;
+        border: 4px solid #000;
+        width: 50vw;
+        height: 50vh;
+        background-color: #fff;
+        opacity: 1;
+        transform: translateX(-50%) translateY(-50%);
+    }
+}
+
+.form {
+    height: 100%;
+    text-align: center;
+
+    > .text-inputs {
+        margin: 2em 0;
+
+        span {
+            margin-left: 1em;
+        }
+    }
+
+    .text-input {
+        margin-left: 1em;
+
+        &:first-child {
+            margin-left: 0;
+        }
+    }
+
+    .interaction-types {
+        text-align: text-center;
+    }
 }

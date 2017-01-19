@@ -14,6 +14,22 @@ const INTERACTION_TYPES = [
   'PCR'
 ]
 
+const ENTITY_TYPES = [
+  'PER.INDIVIDUAL',
+  'PER.GROUP',
+  'PER.INDETERMINATE'
+]
+
+function renderText(text) {
+  if(!text) {
+    return 'No text selected';
+  }
+
+  return text
+    .replace(/[0-9]+/g, '')
+    .replace(/\n/g, '<br/>')
+}
+
 class DataForm extends React.Component {
   constructor(props) {
     super(props);
@@ -28,10 +44,16 @@ class DataForm extends React.Component {
     this.state = Object.assign({}, this.defaultState);
 
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleAddCharacter = this.handleAddCharacter.bind(this);
     this.handleTextChange = this.handleTextChange.bind(this);
+    this.fetchEntities = this.fetchEntities.bind(this);
   }
 
   componentDidMount() {
+    this.fetchEntities()
+  }
+
+  fetchEntities() {
     axios
       .get([REACT_APP_API_URL, 'entities'].join('/'))
       .then((res) => {
@@ -62,6 +84,25 @@ class DataForm extends React.Component {
     this.props.toggleModal();
   }
 
+  handleAddCharacter(e) {
+    e.preventDefault();
+
+    const post_data = {
+      name: this.state['character-name'],
+      metadata: this.state['character-metadata']
+    }
+
+    axios.post([REACT_APP_API_URL, 'entities'].join('/'), post_data)
+      .then(({ data }) => {
+        this.fetchEntities()
+        this.setState({
+          ['character-name']:     '',
+          ['character-metadata']: ''
+        })
+      })
+      .catch((err) => console.error(err))
+  }
+
   handleTextChange(e) {
     const { name, value } = e.target;
 
@@ -80,6 +121,9 @@ class DataForm extends React.Component {
           isOpen={this.props.show}
           contentLabel="form for data input"
       >
+        <div className="selected-text-wrapper">
+          <div className="selected-text" dangerouslySetInnerHTML={{ __html: renderText(this.props.selection.text)}}/>
+        </div>
         <form className="form">
           <div className="text-inputs">
             <select className="text-input" name="person-from" value={this.state["person-from"]} onChange={(e) => this.setState({ ['person-from']: e.target.value })}>
@@ -118,6 +162,13 @@ class DataForm extends React.Component {
           </div>
         </form>
 
+        <hr />
+
+        <form className="form">
+          <input className="text-input" name="character-name" type="text" placeholder="New Character" value={this.state['character-name']} onChange={this.handleTextChange} />
+          <input className="text-input" name="character-metadata" type="text" placeholder="Metadata" value={this.state['character-metadata']} onChange={this.handleTextChange} />
+          <input type="submit" value="Add Character" onClick={this.handleAddCharacter} />
+        </form>
       </ReactModal>
     )
   }

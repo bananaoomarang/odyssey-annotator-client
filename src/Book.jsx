@@ -13,12 +13,15 @@ class Book extends React.Component {
     this.state = {
       lines:     [],
       trans:     '',
+      selection: {
+        text: ''
+      },
       showModal: false
     }
 
     this.updateBook  = debounce(this.updateBook.bind(this), 250);
-    this.handleWord  = this.handleWord.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
   }
 
   updateBook() {
@@ -31,14 +34,33 @@ class Book extends React.Component {
       .catch(err => console.error(err))
   }
 
-  toggleModal() {
+  toggleModal(bool) {
+    if(typeof bool === 'boolean') {
+      return this.setState({ showModal: bool })
+    }
+
     this.setState({ showModal: !this.state.showModal })
   }
 
-  handleWord(e) {
-    const word = e.target.textContent;
+  handleMouseUp(e) {
+    const sel         = window.getSelection();
+    const text        = sel.toString();
+    const from_line   = sel.baseNode.parentElement.dataset.lineNo;
+    const to_line     = sel.extentNode.parentElement.dataset.lineNo;
+    const from_offset = sel.baseOffset;
+    const to_offset   = sel.extentOffset;
 
-    this.toggleModal()
+    this.setState({
+      selection: {
+        text,
+        from_line,
+        to_line,
+        from_offset,
+        to_offset
+      }
+    })
+
+    this.toggleModal(true)
   }
 
   componentDidMount() {
@@ -53,28 +75,15 @@ class Book extends React.Component {
 
   render() {
     return (
-      <div className="Book">
+      <div className="Book" onMouseUp={this.handleMouseUp}>
         <div className="-container">
           <div className="-col-6">
             {
               this.state.lines.map((line, index) => {
                 return (
                   <div key={index} className="line">
-                    <div className="line_no">{index + 1}</div>
-                    {
-                      line.split(' ').map((word, index) => {
-                        return (
-                          <span
-                              className="word"
-                              key={index}
-                              onClick={this.handleWord}
-                          >
-                            {word}
-                            &nbsp;
-                          </span>
-                        )
-                      })
-                    }
+                    <div className="line-no">{index + 1}</div>
+                    <span data-line-no={index + 1}>{line}</span>
                   </div>
                 )
               })
@@ -86,6 +95,7 @@ class Book extends React.Component {
         <DataForm
             show={this.state.showModal}
             toggleModal={this.toggleModal}
+            selection={this.state.selection}
         />
       </div>
     )

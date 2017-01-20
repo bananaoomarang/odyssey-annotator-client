@@ -17,7 +17,10 @@ const INTERACTION_TYPES = [
 const ENTITY_TYPES = [
   'PER.INDIVIDUAL',
   'PER.GROUP',
-  'PER.INDETERMINATE'
+  'PER.INDETERMINATE',
+  'GOD.INDIVIDUAL',
+  'GOD.GROUP',
+  'GOD.INDETERMINATE'
 ]
 
 function renderText(text) {
@@ -30,6 +33,21 @@ function renderText(text) {
     .replace(/\n/g, '<br/>')
 }
 
+function alphabetical(a, b) {
+  const aName = a.name.toLowerCase();
+  const bName = b.name.toLowerCase();
+
+  if (aName < bName) {
+    return -1;
+  }
+
+  if (aName > bName) {
+    return 1;
+  }
+
+  return 0;
+}
+
 class DataForm extends React.Component {
   constructor(props) {
     super(props);
@@ -38,6 +56,7 @@ class DataForm extends React.Component {
       ['person-from']: '',
       ['person-to']:   '',
       type: INTERACTION_TYPES[0],
+      ['character-type']: ENTITY_TYPES[0],
       existingEntities: []
     }
     
@@ -50,7 +69,7 @@ class DataForm extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchEntities()
+    this.fetchEntities();
   }
 
   fetchEntities() {
@@ -70,33 +89,39 @@ class DataForm extends React.Component {
     e.preventDefault();
 
     const post_data = {
-      type: this.state['type'],
-      from: this.state['person-from'],
-      to:   this.state['person-to']
-      
+      book:      this.props.book_no,
+      type:      this.state['type'],
+      from:      this.state['person-from'],
+      to:        this.state['person-to'],
+      selection: this.props.selection
     }
-    console.log(post_data)
 
+    console.log(post_data);
     axios.post([REACT_APP_API_URL, 'interactions'].join('/'), post_data)
-      .then(({ data }) => console.log(data))
+      .then(({ data }) => {
+        this.props.toggleModal(false);
+      })
       .catch((err) => console.error(err))
 
-    this.props.toggleModal();
   }
 
   handleAddCharacter(e) {
     e.preventDefault();
 
     const post_data = {
-      name: this.state['character-name'],
+      name:     this.state['character-name'],
+      type:     this.state['character-type'],
       metadata: this.state['character-metadata']
     }
+
+    console.log(post_data)
 
     axios.post([REACT_APP_API_URL, 'entities'].join('/'), post_data)
       .then(({ data }) => {
         this.fetchEntities()
         this.setState({
           ['character-name']:     '',
+          ['character-type']:     ENTITY_TYPES[0],
           ['character-metadata']: ''
         })
       })
@@ -112,7 +137,6 @@ class DataForm extends React.Component {
   }
 
   render() {
-    console.log(this.state)
     return (
       <ReactModal
           className="body"
@@ -128,7 +152,7 @@ class DataForm extends React.Component {
           <div className="text-inputs">
             <select className="text-input" name="person-from" value={this.state["person-from"]} onChange={(e) => this.setState({ ['person-from']: e.target.value })}>
               {
-                this.state.existingEntities.map(({ name }) => (
+                this.state.existingEntities.sort(alphabetical).map(({ name }) => (
                   <option name={name} key={name}>{name}</option>
                 ))
               }
@@ -136,7 +160,7 @@ class DataForm extends React.Component {
             <span>----></span>
             <select className="text-input" name="person-to" value={this.state["person-to"]} onChange={(e) => this.setState({ ['person-to']: e.target.value })}>
               {
-                this.state.existingEntities.map(({ name }) => (
+                this.state.existingEntities.sort(alphabetical).map(({ name }) => (
                   <option name={name} key={name}>{name}</option>
                 ))
               }
@@ -166,6 +190,15 @@ class DataForm extends React.Component {
 
         <form className="form">
           <input className="text-input" name="character-name" type="text" placeholder="New Character" value={this.state['character-name']} onChange={this.handleTextChange} />
+          <select className="text-input" onChange={(e) => this.setState({ ['character-type']: e.target.value })} value={this.state['character-type']}>
+            {
+              ENTITY_TYPES.map((type) => (
+                <option className="interaction" key={type} value={type} >
+                  {type}
+                </option>
+              ))
+            }
+          </select>
           <input className="text-input" name="character-metadata" type="text" placeholder="Metadata" value={this.state['character-metadata']} onChange={this.handleTextChange} />
           <input type="submit" value="Add Character" onClick={this.handleAddCharacter} />
         </form>

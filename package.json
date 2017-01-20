@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "axios": "^0.15.2",
+    "classnames": "^2.2.5",
     "lodash.debounce": "^4.0.8",
     "react": "^15.3.2",
     "react-autocomplete": "^1.4.0",

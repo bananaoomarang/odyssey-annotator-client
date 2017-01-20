@@ -1,6 +1,7 @@
 import React      from 'react';
 import axios      from 'axios';
 import debounce   from 'lodash.debounce';
+import classnames from 'classnames';
 
 import DataForm   from './DataForm';
 
@@ -16,12 +17,26 @@ class Book extends React.Component {
       selection: {
         text: ''
       },
-      showModal: false
+      existingInteractions: [],
+      showModal: false,
+      greekPullup: 0
     }
 
-    this.updateBook  = debounce(this.updateBook.bind(this), 250);
+    this.updateBook  = debounce(this.updateBook.bind(this), 500);
     this.toggleModal = this.toggleModal.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
+    this.fetchInteractions = this.fetchInteractions.bind(this);
+  }
+
+  fetchInteractions() {
+    axios
+      .get([REACT_APP_API_URL, 'interactions'].join('/') + '?book=' + this.props.no)
+      .then((res) => {
+        this.setState({
+          existingInteractions: res.data,
+        })
+      })
+      .catch((err) => console.error(err))
   }
 
   updateBook() {
@@ -65,25 +80,47 @@ class Book extends React.Component {
 
   componentDidMount() {
     this.updateBook();
+    this.fetchInteractions();
   }
 
-  componentDidUpdate(nextProps) {
-    if(nextProps.no !== this.props.no) {
-      this.updateBook()
+  componentDidUpdate(prevProps, prevState) {
+    if(prevProps.no !== this.props.no) {
+      this.updateBook();
+      this.fetchInteractions();
+    }
+
+    if(prevState.showModal !== this.state.showModal && !this.state.showModal) {
+      this.fetchInteractions();
     }
   }
 
   render() {
+    const greekStyle = {
+      marginTop: -this.state.greekPullup
+    }
+
     return (
-      <div className="Book" onMouseUp={this.handleMouseUp}>
-        <div className="-container">
-          <div className="-col-6">
+      <div className="Book">
+        <input type="text"
+               style={{ position: 'fixed', top: '2em', left: '2em' }}
+               placeholder="pullup"
+               value={this.state.greekPullup}
+               onChange={({ target }) => this.setState({ greekPullup: target.value })} />
+
+        <div className="-container" onMouseUp={this.handleMouseUp}>
+          <div className="-col-6" style={greekStyle}>
             {
               this.state.lines.map((line, index) => {
+                const lineNo = index + 1;
+                const lineHighlighted = this.state.existingInteractions
+                                            .some((interaction) => (lineNo >= interaction.selection.from_line && lineNo <= interaction.selection.to_line))
+
+                const classes = classnames('line', { ['-hl']: lineHighlighted })
+
                 return (
-                  <div key={index} className="line">
-                    <div className="line-no">{index + 1}</div>
-                    <span data-line-no={index + 1}>{line}</span>
+                  <div key={index} className={classes}>
+                    <div className="line-no">{lineNo}</div>
+                    <span data-line-no={lineNo}>{line}</span>
                   </div>
                 )
               })
@@ -93,6 +130,7 @@ class Book extends React.Component {
           </div>
         </div>
         <DataForm
+            book_no={this.props.no}
             show={this.state.showModal}
             toggleModal={this.toggleModal}
             selection={this.state.selection}

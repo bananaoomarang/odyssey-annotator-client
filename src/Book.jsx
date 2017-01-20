@@ -58,8 +58,13 @@ class Book extends React.Component {
   }
 
   handleMouseUp(e) {
-    const sel         = window.getSelection();
-    const text        = sel.toString();
+    const sel  = window.getSelection();
+    const text = sel.toString();
+
+    if(!text) {
+      return console.log('No selection');
+    }
+    
     const from_line   = sel.baseNode.parentElement.dataset.lineNo;
     const to_line     = sel.extentNode.parentElement.dataset.lineNo;
     const from_offset = sel.baseOffset;

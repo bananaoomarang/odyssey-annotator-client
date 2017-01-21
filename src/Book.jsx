@@ -117,10 +117,20 @@ class Book extends React.Component {
             {
               this.state.lines.map((line, index) => {
                 const lineNo = index + 1;
-                const lineHighlighted = this.state.existingInteractions
-                                            .some((interaction) => (lineNo >= interaction.selection.from_line && lineNo <= interaction.selection.to_line))
 
-                const classes = classnames('line', { ['-hl']: lineHighlighted })
+                // Because verbal-near highlights can be pretty long
+                const verbalHighlight = this.state.existingInteractions
+                                            .filter(({ type }) => type === 'INR.VERBAL-NEAR')
+                                            .some((interaction) =>
+                                              (lineNo >= interaction.selection.from_line && lineNo <= interaction.selection.to_line))
+                const otherHighlighted = this.state.existingInteractions
+                                            .filter(({ type }) => type !== 'INR.VERBAL-NEAR')
+                                            .some((interaction) =>
+                                              (lineNo >= interaction.selection.from_line && lineNo <= interaction.selection.to_line))
+
+                const classes = classnames('line',
+                                           { ['-hl-verbal']: verbalHighlight },
+                                           { ['-hl']: otherHighlighted })
 
                 return (
                   <div key={index} className={classes}>

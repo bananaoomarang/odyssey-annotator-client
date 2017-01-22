@@ -58,17 +58,34 @@ class Book extends React.Component {
   }
 
   handleMouseUp(e) {
-    const sel  = window.getSelection();
-    const text = sel.toString();
+    const sel   = window.getSelection();
+    const range = sel.getRangeAt(0);
+    const text  = range.toString();
 
     if(!text) {
       return console.log('No selection');
     }
     
-    const from_line   = sel.baseNode.parentElement.dataset.lineNo;
-    const to_line     = sel.extentNode.parentElement.dataset.lineNo;
-    const from_offset = sel.baseOffset;
-    const to_offset   = sel.extentOffset;
+    const sc  = range.startContainer;
+    const ec  = range.endContainer;
+    const scp = sc.parentElement;
+    const ecp = ec.parentElement;
+
+    let from_span = scp;
+    let to_span   = ecp;
+
+    if(scp.tagName === 'DIV') {
+      from_span = scp.nextElementSibling;
+    }
+
+    if(ecp.tagName === 'DIV') {
+      to_span = ecp.nextElementSibling;
+    }
+
+    const from_line   = from_span.dataset.lineNo;
+    const to_line     = to_span.dataset.lineNo;
+    const from_offset = range.startOffset;
+    const to_offset   = range.endOffset;
 
     this.setState({
       selection: {

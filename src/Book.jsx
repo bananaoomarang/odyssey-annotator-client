@@ -82,8 +82,8 @@ class Book extends React.Component {
       to_span = ecp.nextElementSibling;
     }
 
-    const from_line   = from_span.dataset.lineNo;
-    const to_line     = to_span.dataset.lineNo;
+    const from_line   = parseInt(from_span.dataset.lineNo);
+    const to_line     = parseInt(to_span.dataset.lineNo);
     const from_offset = range.startOffset;
     const to_offset   = range.endOffset;
 

@@ -25,6 +25,7 @@ class OdysseyViewer extends React.Component {
 
         <div className="Controls">
           <input
+            style={{ width: '25%' }}
             type="range"
             min="1"
             max="24"
